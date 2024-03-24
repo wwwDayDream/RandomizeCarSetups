@@ -1,0 +1,8 @@
+{
+  "Id": "SloppyShunters",
+  "DisplayName": "Sloppy Shunters",
+  "Version": "0.1.0",
+  "Author": "wwwDayDream",
+  "AssemblyName": "RandomizeCarSetups.dll",
+  "EntryMethod": "RandomizeCarSetups.Plugin.Load"
+}
