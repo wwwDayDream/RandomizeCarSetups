@@ -43,6 +43,15 @@ internal static class Plugin
     }
     private static void OnGUI(UnityModManager.ModEntry obj)
     {
+        GUILayout.Label("Number of event roles per Job");
+        Config.EventsPerJob = int.TryParse(GUILayout.TextField(Config.EventsPerJob.ToString(), 2), out var newI) ? newI : Config.EventsPerJob;
+        GUILayout.BeginHorizontal();
+        GUILayout.Label("When are jobs randomized?");
+        GUILayout.Space(4);
+        Config.RandomizeOnSpawnOnly = GUILayout.Toggle(Config.RandomizeOnSpawnOnly, "");
+        GUILayout.Label(Config.RandomizeOnSpawnOnly ? "On Car First Spawn" : "On Station Re-Entry");
+        GUILayout.EndHorizontal();
+        GUILayout.Space(4);
         GUILayout.Label("Chance to split chain of Cars");
         Config.ChanceToSplitChain = GUILayout.HorizontalSlider(Config.ChanceToSplitChain, 0f, 1f);
         GUILayout.Label("Chance to apply brake on a Car");
