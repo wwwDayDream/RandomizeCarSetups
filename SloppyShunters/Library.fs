@@ -7,7 +7,8 @@ open UnityEngine
 open UnityModManagerNet
 
 module PluginConfig =
-    let mutable ChanceToMessWithLink: float32 = 0.025f
+    let mutable ChanceToMessWithAirLink: float32 = 0.025f
+    let mutable ChanceToMessWithChainScrew: float32 = 0.025f
     let mutable ChanceToMessWithManualBrakes: float32 = 0.025f
     let mutable ChanceToMessWithAirBrakes: float32 = 0.01f
     let mutable RollsPerTrainCar: int = 1
@@ -21,7 +22,8 @@ module PluginConfig =
     
     let Save (modEntry: UnityModManager.ModEntry) =
         use writer = new BinaryWriter (File.OpenWrite(configFilePath modEntry))
-        writer.Write ChanceToMessWithLink
+        writer.Write ChanceToMessWithAirLink
+        writer.Write ChanceToMessWithChainScrew
         writer.Write ChanceToMessWithManualBrakes
         writer.Write ChanceToMessWithAirBrakes
         writer.Write RollsPerTrainCar
@@ -34,7 +36,8 @@ module PluginConfig =
         if File.Exists (configFilePath modEntry) then
             use reader = new BinaryReader (File.OpenRead(configFilePath (modEntry)))
             try
-                ChanceToMessWithLink <- reader.ReadSingle()
+                ChanceToMessWithAirLink <- reader.ReadSingle()
+                ChanceToMessWithChainScrew <- reader.ReadSingle()
                 ChanceToMessWithManualBrakes <- reader.ReadSingle()
                 ChanceToMessWithAirBrakes <- reader.ReadSingle()
                 RollsPerTrainCar <- reader.ReadInt32()
@@ -105,8 +108,10 @@ module Plugin =
         GUILayout.EndHorizontal()
         
         GUILayout.Space(5f)
-        GUILayout.Label "Chance to mess with link(s)"
-        PluginConfig.ChanceToMessWithLink <- GUILayout.HorizontalSlider(PluginConfig.ChanceToMessWithLink, 0f, 1f)
+        GUILayout.Label "Chance to mess with air hose link(s)"
+        PluginConfig.ChanceToMessWithAirLink <- GUILayout.HorizontalSlider(PluginConfig.ChanceToMessWithAirLink, 0f, 1f)
+        GUILayout.Label "Chance to mess with chain screw link(s)"
+        PluginConfig.ChanceToMessWithChainScrew <- GUILayout.HorizontalSlider(PluginConfig.ChanceToMessWithChainScrew, 0f, 1f)
         GUILayout.Label "Chance to mess with manual brakes" 
         PluginConfig.ChanceToMessWithManualBrakes <- GUILayout.HorizontalSlider(PluginConfig.ChanceToMessWithManualBrakes, 0f, 1f)
         GUILayout.Label "Chance to mess with air brakes" 
