@@ -34,8 +34,8 @@ module PluginConfig =
         
     let Load (modEntry: UnityModManager.ModEntry) =
         if File.Exists (configFilePath modEntry) then
-            use reader = new BinaryReader (File.OpenRead(configFilePath (modEntry)))
             try
+                use reader = new BinaryReader (File.OpenRead(configFilePath (modEntry)))
                 ChanceToMessWithAirLink <- reader.ReadSingle()
                 ChanceToMessWithChainScrew <- reader.ReadSingle()
                 ChanceToMessWithManualBrakes <- reader.ReadSingle()
