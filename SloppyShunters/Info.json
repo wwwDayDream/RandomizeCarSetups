@@ -1,8 +1,8 @@
 {
   "Id": "SloppyShunters",
   "DisplayName": "Sloppy Shunters",
-  "Version": "0.2.0",
-  "Author": "wwwDayDream",
+  "Version": "0.2.1",
+  "Author": "wwwDayDream;Luckayla",
   "AssemblyName": "SloppyShunters.dll",
   "EntryMethod": "SloppyShunters.Plugin.Load",
   "Repository": "https://raw.githubusercontent.com/wwwDayDream/RandomizeCarSetups/master/resources/repository.json"
