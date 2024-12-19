@@ -11,7 +11,7 @@ module JobChainControllerPatch =
     let private _random () = Random.Range(0f, 1f)
     let private _dataLog (origin: string) (msg: string) =
         Plugin.ModEntry.Value.Logger.Log $"[{origin}] {msg}"
-    let TryToMessWithLink (chance: float32) (train: TrainCar) (job: Job) =
+    let TryToMessWithAirLink (chance: float32) (train: TrainCar) (job: Job) =
         if chance >= _random() then
             let coupler = 
                 if train.frontCoupler.IsCoupled() then Some train.frontCoupler
@@ -19,13 +19,21 @@ module JobChainControllerPatch =
                 else None
             
             if coupler.IsSome then
-                if _random() >= 0.4f then
-                    coupler.Value.DisconnectAirHose(false)
-                    _dataLog (job.ID + "|" + train.ID) "Disconnected Air Hose"
-                else
-                    coupler.Value.SetChainTight(false)
-                    if coupler.Value.coupledTo <> null then
-                        coupler.Value.coupledTo.SetChainTight(false)
+                coupler.Value.DisconnectAirHose(false)
+                _dataLog (job.ID + "|" + train.ID) "Disconnected Air Hose"
+            true
+        else
+            false
+    let TryToMessWithChainScrew (chance: float32) (train: TrainCar) (job: Job) =
+        if chance >= _random() then
+            let coupler = 
+                if train.frontCoupler.IsCoupled() then Some train.frontCoupler
+                elif train.rearCoupler.IsCoupled() then Some train.rearCoupler
+                else None
+            if coupler.IsSome then
+                coupler.Value.SetChainTight(false)
+                if coupler.Value.coupledTo <> null then
+                    coupler.Value.coupledTo.SetChainTight(false)
                     _dataLog (job.ID + "|" + train.ID) "Loosened Chain"
             true
         else
@@ -64,12 +72,15 @@ module JobChainControllerPatch =
             yield WaitForSeconds (Coupler.AUTO_COUPLE_DELAY * 2f)
             Plugin.ModEntry.Value.Logger.Log $"Sloppifying Job {generatedJob.ID} with {trains.Length} train(s).."
             for train in trains do
-                let mutable messedWithLink = false
+                let mutable messedWithAirLink = false
+                let mutable messedWithChainScrew = false
                 let mutable messedWithHandbrake = false
                 let mutable messedWithAirBrakes = false
                 for roll=1 to PluginConfig.RollsPerTrainCar do
-                    if not messedWithLink then
-                        messedWithLink <- TryToMessWithLink PluginConfig.ChanceToMessWithLink train generatedJob
+                    if not messedWithAirLink then
+                        messedWithAirLink <- TryToMessWithAirLink PluginConfig.ChanceToMessWithAirLink train generatedJob
+                    if not messedWithChainScrew then
+                        messedWithChainScrew <- TryToMessWithChainScrew PluginConfig.ChanceToMessWithChainScrew train generatedJob
                     if not messedWithHandbrake then
                         messedWithHandbrake <- TryToMessWithManualBrakes PluginConfig.ChanceToMessWithManualBrakes train generatedJob
                     if not messedWithAirBrakes then
