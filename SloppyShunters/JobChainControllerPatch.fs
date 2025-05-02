@@ -3,6 +3,7 @@
 open DV.Logic.Job
 open DV.Simulation.Brake
 open DV.ThingTypes
+open DV.Utils
 open HarmonyLib
 open UnityEngine
 
@@ -11,20 +12,22 @@ module JobChainControllerPatch =
     let private _random () = Random.Range(0f, 1f)
     let private _dataLog (origin: string) (msg: string) =
         Plugin.ModEntry.Value.Logger.Log $"[{origin}] {msg}"
-    let TryToMessWithAirLink (chance: float32) (train: TrainCar) (job: Job) =
+    let TryToMessWithAirLink (chance: float32) (car: Car) (job: Job) =
+        let trainCar = SingletonBehaviour<TrainCarRegistry>.Instance.GetTrainCarByCarGuid(car.carGuid)
         if chance >= _random() then
-            let coupler = 
-                if train.frontCoupler.IsCoupled() then Some train.frontCoupler
-                elif train.rearCoupler.IsCoupled() then Some train.rearCoupler
+            let coupler =
+                if trainCar.frontCoupler.IsCoupled() then Some trainCar.frontCoupler
+                elif trainCar.rearCoupler.IsCoupled() then Some trainCar.rearCoupler
                 else None
             
             if coupler.IsSome then
                 coupler.Value.DisconnectAirHose(false)
-                _dataLog (job.ID + "|" + train.ID) "Disconnected Air Hose"
+                _dataLog (job.ID + "|" + trainCar.ID) "Disconnected Air Hose"
             true
         else
             false
-    let TryToMessWithChainScrew (chance: float32) (train: TrainCar) (job: Job) =
+    let TryToMessWithChainScrew (chance: float32) (car: Car) (job: Job) =
+        let train = SingletonBehaviour<TrainCarRegistry>.Instance.GetTrainCarByCarGuid(car.carGuid)
         if chance >= _random() then
             let coupler = 
                 if train.frontCoupler.IsCoupled() then Some train.frontCoupler
@@ -38,14 +41,16 @@ module JobChainControllerPatch =
             true
         else
             false
-    let TryToMessWithManualBrakes (chance: float32) (train: TrainCar) (job: Job) =
+    let TryToMessWithManualBrakes (chance: float32) (car: Car) (job: Job) =
+        let train = SingletonBehaviour<TrainCarRegistry>.Instance.GetTrainCarByCarGuid(car.carGuid)
         if train.brakeSystem.hasHandbrake && chance >= _random() then
             _dataLog (job.ID + "|" + train.ID) "Adjusted Handbrake"
             train.brakeSystem.SetHandbrakePosition (Random.Range (0.5f, 1f))
             true
         else
             false
-    let TryToMessWithAirBrakes (chance: float32) (train: TrainCar) (job: Job) =
+    let TryToMessWithAirBrakes (chance: float32) (car: Car) (job: Job) =
+        let train = SingletonBehaviour<TrainCarRegistry>.Instance.GetTrainCarByCarGuid(car.carGuid)
         if chance > _random() then
             let ran = _random()
             let reverseCock (cock: HoseAndCock) =
@@ -67,7 +72,7 @@ module JobChainControllerPatch =
             true
         else
             false
-    let Sloppify (trains: TrainCar array) (generatedJob: Job) =
+    let Sloppify (trains: Car array) (generatedJob: Job) =
         CoroutineManager.Instance.StartCoroutine (seq {
             yield WaitForSeconds (Coupler.AUTO_COUPLE_DELAY * 2f)
             Plugin.ModEntry.Value.Logger.Log $"Sloppifying Job {generatedJob.ID} with {trains.Length} train(s).."
@@ -94,6 +99,6 @@ module JobChainControllerPatch =
             if jobLoadedFromSavegame then
                 Plugin.ModEntry.Value.Logger.Log $"Skipping sloppification of Job[{__instance.currentJobInChain.ID}], Job is loaded from savegame!"
             elif PluginConfig.JobsToRollOn |> List.contains __instance.currentJobInChain.jobType then
-                Sloppify (__instance.trainCarsForJobChain |> Array.ofSeq) __instance.currentJobInChain
+                Sloppify (__instance.carsForJobChain |> Array.ofSeq) __instance.currentJobInChain
             else
                 Plugin.ModEntry.Value.Logger.Log $"Skipping sloppification of Job[{__instance.currentJobInChain.ID}], we don't roll on this job type."
